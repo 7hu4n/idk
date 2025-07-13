@@ -1,0 +1,78 @@
+loadstring([[
+local g=Instance.new("ScreenGui",game.CoreGui)
+g.Name="tHubUI"
+local f=Instance.new("Frame",g)
+f.BackgroundColor3=Color3.fromRGB(30,30,30)
+f.Position=UDim2.new(0.3,0,0.3,0)
+f.Size=UDim2.new(0,220,0,340)
+f.Active=true f.Draggable=true
+
+local tb=Instance.new("Frame",f)
+tb.BackgroundColor3=Color3.fromRGB(50,50,50)
+tb.Size=UDim2.new(1,0,0,30)
+
+local title=Instance.new("TextLabel",tb)
+title.BackgroundTransparency=1
+title.Position=UDim2.new(0,10,0,0)
+title.Size=UDim2.new(1,-60,1,0)
+title.Font=Enum.Font.SourceSansBold
+title.Text="tHub 😈"
+title.TextColor3=Color3.new(1,1,1)
+title.TextSize=20
+title.TextXAlignment=Enum.TextXAlignment.Left
+
+local close=Instance.new("TextButton",tb)
+close.BackgroundColor3=Color3.fromRGB(80,0,0)
+close.Position=UDim2.new(1,-30,0,0)
+close.Size=UDim2.new(0,30,1,0)
+close.Text="X"
+close.TextColor3=Color3.new(1,1,1)
+close.TextSize=18
+close.Font=Enum.Font.SourceSansBold
+close.MouseButton1Click:Connect(function()
+	g:Destroy()
+end)
+
+local min=Instance.new("TextButton",tb)
+min.BackgroundColor3=Color3.fromRGB(40,40,40)
+min.Position=UDim2.new(1,-60,0,0)
+min.Size=UDim2.new(0,30,1,0)
+min.Text="-"
+min.TextColor3=Color3.new(1,1,1)
+min.TextSize=18
+min.Font=Enum.Font.SourceSansBold
+
+local layout=Instance.new("UIListLayout",f)
+layout.SortOrder=Enum.SortOrder.LayoutOrder
+layout.Padding=UDim.new(0,5)
+
+local minimized=false
+min.MouseButton1Click:Connect(function()
+	minimized=not minimized
+	for _,c in pairs(f:GetChildren()) do
+		if c:IsA("TextButton") and c~=min and c~=close then
+			c.Visible=not minimized
+		end
+	end
+	f.Size=minimized and UDim2.new(0,220,0,30) or UDim2.new(0,220,0,340)
+end)
+
+local function btn(name,text,url)
+	local b=Instance.new("TextButton",f)
+	b.Name=name
+	b.Size=UDim2.new(1,-10,0,35)
+	b.BackgroundColor3=Color3.fromRGB(60,60,60)
+	b.TextColor3=Color3.new(1,1,1)
+	b.Font=Enum.Font.SourceSans
+	b.TextSize=18
+	b.Text=text
+	b.MouseButton1Click:Connect(function()
+		loadstring(game:HttpGet(url))()
+	end)
+end
+
+btn("script1","sục","https://pastefy.app/wa3v2Vgm/raw")
+btn("script2","sục 2","https://pastefy.app/YZoglOyJ/raw")
+btn("script3","lunor","https://lunor.dev/loader")
+btn("infiniteYield","Infyield","https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source")
+]])()
