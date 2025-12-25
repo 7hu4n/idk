@@ -1,0 +1,151 @@
+local lighting = game:GetService("Lighting")
+local players = game:GetService("Players")
+local run = game:GetService("RunService")
+local terrain = workspace:FindFirstChildOfClass("Terrain")
+local localPlayer = players.LocalPlayer
+
+if not game:IsLoaded() then
+	repeat task.wait() until game:IsLoaded()
+end
+
+pcall(function()
+	for _, v in pairs(lighting:GetChildren()) do
+		if v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("BloomEffect")
+		or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") then
+			v:Destroy()
+		end
+	end
+	lighting.GlobalShadows = false
+	lighting.EnvironmentSpecularScale = 0
+	lighting.EnvironmentDiffuseScale = 0
+	lighting.Brightness = 1
+	lighting.FogEnd = 1e9
+	lighting.ShadowSoftness = 0
+	lighting.ClockTime = 12
+	lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
+end)
+
+if terrain then
+	pcall(function()
+		terrain.WaterWaveSize = 0
+		terrain.WaterWaveSpeed = 0
+		terrain.WaterReflectance = 0
+		terrain.WaterTransparency = 1
+		terrain.Decoration = false
+	end)
+end
+
+local function simplify(v)
+	pcall(function()
+		if v:IsA("BasePart") then
+			v.Material = Enum.Material.SmoothPlastic
+			v.Reflectance = 0
+			v.CastShadow = false
+		elseif v:IsA("MeshPart") then
+			v.Material = Enum.Material.SmoothPlastic
+			v.TextureID = ""
+			v.RenderFidelity = Enum.RenderFidelity.Performance
+		elseif v:IsA("UnionOperation") then
+			v.Material = Enum.Material.SmoothPlastic
+		elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
+			v:Destroy()
+		elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam")
+		or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+			v.Enabled = false
+		elseif v:IsA("Light") then
+			v.Enabled = false
+		end
+	end)
+end
+
+for _, v in pairs(workspace:GetDescendants()) do
+	simplify(v)
+end
+
+workspace.DescendantAdded:Connect(function(v)
+	task.defer(function()
+		simplify(v)
+	end)
+end)
+
+local function optimizeChar(char)
+	for _, v in pairs(char:GetDescendants()) do
+		pcall(function()
+			if v:IsA("Accessory") or v:IsA("Clothing") or v:IsA("ShirtGraphic") then
+				v:Destroy()
+			elseif v:IsA("BasePart") then
+				v.Material = Enum.Material.SmoothPlastic
+				v.Reflectance = 0
+			end
+		end)
+	end
+end
+
+for _, plr in pairs(players:GetPlayers()) do
+	if plr.Character then optimizeChar(plr.Character) end
+	plr.CharacterAdded:Connect(optimizeChar)
+end
+
+players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(optimizeChar)
+end)
+
+pcall(function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Low
+	settings().Rendering.EagerBulkExecution = false
+end)
+
+task.spawn(function()
+	while task.wait(10) do
+		collectgarbage("collect")
+	end
+end)
+-- freeze anim just for fun
+local function freezeHumanoidAnimations(humanoid)
+	for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+		track:Stop()
+	end
+	humanoid.AnimationPlayed:Connect(function(track)
+		track:Stop()
+	end)
+	for _, motor in pairs(humanoid:GetDescendants()) do
+		if motor:IsA("Motor6D") then
+			motor.C0 = CFrame.new()
+			motor.C1 = CFrame.new()
+		end
+	end
+end
+
+local function freezeCharacter(character)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		freezeHumanoidAnimations(humanoid)
+	end
+end
+
+players.PlayerAdded:Connect(function(player)
+	if player ~= localPlayer then
+		player.CharacterAdded:Connect(function(char)
+			freezeCharacter(char)
+		end)
+	end
+end)
+
+for _, player in pairs(players:GetPlayers()) do
+	if player ~= localPlayer and player.Character then
+		freezeCharacter(player.Character)
+	end
+end
+
+task.spawn(function()
+	while task.wait(1) do
+		for _, player in pairs(players:GetPlayers()) do
+			if player ~= localPlayer and player.Character then
+				freezeCharacter(player.Character)
+			end
+		end
+	end
+end)
+
+print("DONE")
